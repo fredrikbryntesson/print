@@ -1,3 +1,4 @@
+var fs = require("fs");
 module Print {
 	export class ServerConfiguration {
 		private static serverConfiguration: ServerConfiguration;
@@ -17,12 +18,19 @@ module Print {
 		getRepos(): RepositoryInformation[] { return <RepositoryInformation[]>this.config.repos; }
 		getJobTimeout(): number { return this.config.jobTimeout * 1000; }
 		getBranches(): any { return this.config.branches; }
+		getTools(): any {return this.config.tools;}
 
 		static getServerConfig(): ServerConfiguration {
 			if (!ServerConfiguration.serverConfiguration) {
 				try {
 					ServerConfiguration.serverConfiguration = new ServerConfiguration();
 					ServerConfiguration.serverConfiguration.config = JSON.parse(fs.readFileSync("config.json", "utf-8"));
+					ServerConfiguration.serverConfiguration.config.tools.forEach(toolpath => {
+						if (!fs.existsSync(toolpath)) {
+							console.log(toolpath + " does not exist, process exit");
+							process.exit(1);
+						}
+					}
 				}
 				catch (Error) {
 					console.log("There was an error while reading the configuration file, unable to continue.\n" + Error.toString());
